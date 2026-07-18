@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<title>CPL</title>
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet" />
+
+<!-- EmailJS -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+<style>
+/* Reset & Basic Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  font-family: "IBM Plex Mono", monospace;
+  background: #fff;
+  color: #000;
+  text-transform: uppercase;
+  overflow-x: hidden;
+}
+
+/* Buttons & Images */
+button {
+  font: inherit;
+  background: none;
+  border: 1px solid black;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: background 0.3s;
+}
+button:hover {
+  background: #eee;
+}
+img {
+  display: block;
+  width: 100%;
+}
+
+/* Variables */
+:root {
+  --border: 1px solid #000;
+  --padding: 20px;
+  --transition: 0.25s ease;
+}
+
+/* Header */
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 64px;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border-bottom: none;
+  z-index: 1000;
+}
+.logo {
+  font-size: 18px;
+  letter-spacing: 2px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: transform 0.5s ease, background 0.2s ease;
+  user-select: none;
+}
+.logo:hover { background: #f5f5f5; }
+.logo.rotate { transform: rotate(-90deg); }
+.cart-button {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Shop Grid */
+.shop {
+  margin-top: 64px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0,1fr));
+  gap: 1px;
+  opacity: 1;
+
+  transform-origin: center top;
+
+  transition:
+    grid-template-columns 0.70s ease,
+    opacity 0.55s ease,
+    transform 0.55s cubic-bezier(.22,.61,.36,1);
+}
+.shop.fading {
+  opacity: 0;
+}
+.product {
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+.product:hover {
+  opacity: 0.75;
+}
+.product img {
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  transition:
+    transform 550ms cubic-bezier(.22,.61,.36,1),
+    opacity 1s ease;
+}
+  .product-info {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .shop { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (max-width: 700px) {
+  .shop {
+    grid-template-columns: 1fr;
+  }
+  .product {
+    border-right: none;
+  }
+}
+
+/* Product Page */
+.product-page {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 64px);
+  background: #fff;
+  display: none;
+  overflow: auto;
+  z-index: 900;
+}
+.product-page.active {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  animation: zoomInCamera 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+@keyframes zoomInCamera {
+  from {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.product-image {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  cursor: zoom-in;
+  background: #fff;
+}
+.product-image.zoomed { cursor: zoom-out; }
+.product-image img {
+  pointer-events: none;
+  user-select: none;
+  touch-action: none;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.35s ease;
+  transform-origin: center;
+}
+.product-image.zoomed img { transform: scale(1.25); }
+.product-details {
+  border-left: var(--border);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.product-title {
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+.product-price {
+  font-size: 14px;
+}
+.product-description {
+  font-size: 13px;
+  line-height: 1.8;
+  white-space: pre-line;
+}
+.add-button {
+  width: 100%;
+  padding: 18px;
+  font-size: 18px;
+  margin-top: auto;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+/* Cart Drawer */
+.cart {
+  position: fixed;
+  top: 0;
+  right: -420px;
+  width: 420px;
+  max-width: 100%;
+  height: 100vh;
+  background: #fff;
+  border-left: var(--border);
+  transition: right 0.35s ease;
+  padding: 24px;
+  overflow: auto;
+  z-index: 2000;
+}
+.cart.active {
+  right: 0;
+}
+.cart-title {
+  font-size: 18px;
+  margin-bottom: 30px;
+}
+.cart-item {
+  padding: 20px 0;
+  border-bottom: var(--border);
+}
+.cart-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+.qty-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--border);
+}
+.remove {
+  margin-top: 12px;
+  font-size: 12px;
+  cursor: pointer;
+  color: red;
+}
+.subtotal {
+  margin-top: 32px;
+  font-size: 15px;
+}
+.checkout-button {
+  margin-top: 20px;
+  width: 100%;
+  padding: 18px;
+}
+
+/* Checkout */
+.checkout {
+  display: none;
+  padding: 120px 10vw 80px;
+  max-width: 800px;
+  margin: auto;
+}
+.checkout.active {
+  display: block;
+}
+.checkout h2 {
+  margin-bottom: 40px;
+  font-size: 18px;
+}
+.checkout label {
+  display: block;
+  margin-top: 24px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+.checkout input {
+  width: 100%;
+  padding: 16px;
+  border: var(--border);
+  font: inherit;
+  text-transform: uppercase;
+  outline: none;
+}
+#placeOrder {
+  margin-top: 40px;
+  width: 100%;
+  padding: 18px;
+  background-color: #000;
+  color: #fff;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+
+/* Responsive adjustments for smaller screens */
+@media(max-width: 900px) {
+  .product-page.active { grid-template-columns: 1fr; }
+  .product-details { border-left: none; border-top: var(--border); }
+  .cart { width: 100%; }
+}
+
+/* Notifications */
+.notification {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 300px;
+  background: #fff;
+  border: var(--border);
+  padding: 10px;
+  display: none;
+  z-index: 3000;
+}
+.notification.active { display: block; }
+
+/* Mini Popups (stacked mini-notifications at bottom-left) */
+.mini-popup {
+  position: fixed;
+  left: 20px;
+  width: 320px;
+  background: #fff;
+  border: var(--border);
+  padding: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.07);
+  border-radius: 4px;
+  z-index: 3100;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: auto;
+}
+.mini-popup.active { opacity: 1; transform: translateY(0); }
+.mini-popup .mini-content { text-align: left; font-size: 13px; }
+.mini-popup .mini-actions { margin-top: 10px; display: flex; gap: 8px; justify-content: flex-end; }
+
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo" id="toggleButton" role="button" aria-pressed="false" aria-label="Toggle grid">+</div>
+  <div class="cart-button" id="openCart">BAG (<span id="cartCount">0</span>)</div>
+</header>
+
+<!-- Shop Grid -->
+<main class="shop" id="shop">
+  <!-- Product Items will be dynamically generated here -->
+</main>
+
+<!-- Product Page -->
+<section class="product-page" id="productPage">
+  <div class="product-image" id="productImageWrap">
+    <img id="productImage" src="" alt="PRODUCT" />
+  </div>
+  <div class="product-details">
+    <button id="backButton">← BACK</button>
+    <div class="product-title" id="productTitle">PRODUCT</div>
+    <div class="product-price" id="productPrice">$0</div>
+    <div class="product-description" id="productDescription"></div>
+    <button class="add-button" id="addToCart">ADD TO CART</button>
+  </div>
+</section>
+
+<!-- Cart Drawer -->
+<aside class="cart" id="cart">
+  <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+    <div class="cart-title">BAG</div>
+    <button id="closeCart">✕</button>
+  </div>
+  <div id="cartItems"><p>YOUR CART IS EMPTY.</p></div>
+  <div class="subtotal">SUBTOTAL <div id="subtotal">$0</div></div>
+  <button class="checkout-button" id="goCheckout">CHECKOUT</button>
+</aside>
+
+<!-- Checkout -->
+<section class="checkout" id="checkout">
+  <h2>CHECKOUT</h2>
+  <form id="checkoutForm">
+    <label for="firstName">FIRST NAME</label>
+    <input type="text" id="fullName" name="fullName" required />
+
+        <label for="lastNamr">LAST NAME</label>
+    <input type="text" id="lastName" name="lastName" required />
+
+    <label for="email">EMAIL</label>
+    <input type="email" id="email" name="email" required />
+
+    <label for="address">ADDRESS</label>
+    <input type="text" id="address" name="address" required />
+
+    <label for="city">CITY</label>
+    <input type="text" id="city" name="city" required />
+
+    <label for="state">STATE</label>
+    <input type="text" id="state" name="state" required />
+
+    <label for="zip">ZIP CODE</label>
+    <input type="text" id="zip" name="zip" required />
+
+    <label for="card">CARD</label>
+    <input type="text" id="card" name="card" required />
+
+    <button type="button" id="placeOrder">PLACE ORDER</button>
+  </form>
+</section>
+
+<!-- Order Complete -->
+<section class="checkout" id="complete">
+  <h2>THANK YOU.</h2>
+  <p>YOUR ORDER HAS BEEN RECEIVED. AN EMAIL CONFIRMATION HAS BEEN SENT TO YOU FOR MORE INFO. IF YOU CANT FIND IT, CHECK YOUR SPAM FOLDER.</p>
+  <button id="continueShopping">CONTINUE SHOPPING</button>
+</section>
+
+<!-- Cookies Mini Popup -->
+<div class="mini-popup" id="cookiesPopup">
+  <div class="mini-content">
+    <p>This website uses cookies to ensure you get the best experience.</p>
+    <div class="mini-actions">
+      <button id="acceptCookies">Accept</button>
+      <button id="dismissCookies">Dismiss</button>
+    </div>
+  </div>
+</div>
+
+<!-- Subscribe Mini Popup -->
+<div class="mini-popup" id="subscribePopup">
+  <div class="mini-content">
+    <p>Subscribe to our newsletter for updates!</p>
+    <input type="email" id="subscribeEmail" placeholder="Enter your email" />
+    <div class="mini-actions">
+      <button id="subscribeButton">Subscribe</button>
+    </div>
+  </div>
+</div>
+
+<!-- Notification -->
+<div class="notification" id="notification">
+  <p>Notification message here.</p>
+</div>
+
+<script>
+// Initialize EmailJS
+emailjs.init("UVtQ8eeIBGmH2irS8");
+
+// JavaScript Section
+
+// Data
+const products = [
+  { id: 1, name: "TS-01", price: 20, image: "6251CF23-0E41-4B9B-987E-490EAEB92246.png"},
+  { id: 2, name: "TS-02", price: 20, image: "A6771C0B-EEFD-4E70-B7C5-861EF7A2144D.png"},
+  { id: 3, name: "RS-01", price: 20, image: "0B545363-7368-4232-87A9-7E4734B2F183.png"},
+  { id: 4,  name: "RS-02", price: 20, image: "IMG_3233.png"},
+{ id: 5,  name: "JP-01", price: 20, image: "6CDA4661-2BAE-4D5A-AF31-1D78C593D17B.png"},
+{ id: 6,  name: "JP-02", price: 20, image: "IMG_3223.webp"},
+{ id: 7,  name: "JP-03", price: 20, image: "9CD78E98-2D6F-44D9-93EC-EB59B981E6AD.png"},
+{ id: 8,  name: "HD-01", price: 20, image: "E760CB06-9580-46FE-974C-73FCB2D6E1B9.png"},
+{ id: 9,  name: "JG-01", price: 20, image: "IMG_3225.webp"},
+{ id: 10, name: "PLACEHOLDER", price: 20, image: ""},
+{ id: 11, name: "PLACEHOLDER", price: 20, image: ""},
+{ id: 12, name: "PLACEHOLDER", price: 20, image: ""},
+{ id: 13, name: "PLACEHOLDER", price: 20, image: ""},
+{ id: 14, name: "PLACEHOLDER", price: 20, image: ""},
+{ id: 15, name: "PLACEHOLDER", price: 20, image: ""},
+{ id: 16, name: "PLACEHOLDER", price: 20, image: ""},
+{ id: 17, name: "PLACEHOLDER", price: 20, image: ""},
+{ id: 18, name: "PLACEHOLDER", price: 20, image: ""},
+{ id: 19, name: "PLACEHOLDER", price: 20, image: ""},
+{ id: 20, name: "PLACEHOLDER", price: 20, image: ""},
+  
+];
+
+let cart = [];
+let currentProduct = null;
+let isExpanded = false;
+let customerData = {};
+
+// DOM Elements
+const shop = document.getElementById("shop");
+const productPage = document.getElementById("productPage");
+const productImage = document.getElementById("productImage");
+const productImageWrap = document.getElementById("productImageWrap");
+const productTitle = document.getElementById("productTitle");
+const productPrice = document.getElementById("productPrice");
+const productDescription = document.getElementById("productDescription");
+const addToCartBtn = document.getElementById("addToCart");
+const cartDrawer = document.getElementById("cart");
+const cartItemsContainer = document.getElementById("cartItems");
+const cartCountSpan = document.getElementById("cartCount");
+const subtotalSpan = document.getElementById("subtotal");
+const checkoutPage = document.getElementById("checkout");
+const checkoutForm = document.getElementById("checkoutForm");
+const completePage = document.getElementById("complete");
+const toggleButton = document.getElementById("toggleButton");
+const cookiesPopup = document.getElementById("cookiesPopup");
+const subscribePopup = document.getElementById("subscribePopup");
+const subscribeEmail = document.getElementById("subscribeEmail");
+const notification = document.getElementById("notification");
+
+// Mini popup stack state
+let activeMiniPopups = [];
+function updateMiniPopupPositions() {
+  activeMiniPopups.forEach((el, i) => {
+    // stack upwards; newest on top (index 0)
+    el.style.bottom = `${20 + i * 84}px`;
+    el.style.zIndex = 3200 + (activeMiniPopups.length - i);
+  });
+}
+function showMiniPopup(el) {
+  if (!el) return;
+  if (!activeMiniPopups.includes(el)) {
+    // put newest at front so it appears on top
+    activeMiniPopups.unshift(el);
+  }
+  el.classList.add('active');
+  updateMiniPopupPositions();
+}
+function hideMiniPopup(el) {
+  if (!el) return;
+  const idx = activeMiniPopups.indexOf(el);
+  if (idx !== -1) activeMiniPopups.splice(idx, 1);
+  el.classList.remove('active');
+  el.style.bottom = '';
+  updateMiniPopupPositions();
+}
+
+// Load Products into Shop
+function renderShop() {
+  products.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "product";
+    div.dataset.id = p.id;
+    div.innerHTML = `
+      <img src="${p.image}" alt="${p.name}" />
+      <div class="product-info">
+        <span>${p.name}</span>
+      </div>
+    `;
+    shop.appendChild(div);
+  });
+}
+
+// Open Product Page
+function openProduct(id) {
+  const product = products.find(p => p.id === id);
+  if (!product) return;
+  currentProduct = product;
+  productImage.src = product.image;
+  productImage.alt = product.name;
+  productTitle.textContent = product.name;
+  productPrice.textContent = `$${product.price}`;
+  productDescription.textContent = product.description || "PLACEHOLDER DESCRIPTION. 100% COTTON. MADE IN USA.";
+  // reset zoom state
+  productImageWrap.classList.remove('zoomed');
+  productPage.classList.add("active");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// Close Product Page
+document.getElementById("backButton").addEventListener("click", () => {
+  productPage.classList.remove("active");
+});
+
+// Attach product click events
+shop.addEventListener("click", (e) => {
+  const productDiv = e.target.closest(".product");
+  if (productDiv) {
+    const id = Number(productDiv.dataset.id);
+    openProduct(id);
+  }
+});
+
+// Add to Cart
+addToCartBtn.addEventListener("click", () => {
+  if (!currentProduct) return;
+  const existing = cart.find(p => p.id === currentProduct.id);
+  if (existing) {
+    existing.quantity++;
+  } else {
+    cart.push({ ...currentProduct, quantity: 1 });
+  }
+  updateCart();
+  cartDrawer.classList.add("active");
+  showNotification(`${currentProduct.name} added to bag.`);
+});
+
+// Cart toggle
+document.getElementById("openCart").addEventListener("click", () => {
+  updateCart();
+  cartDrawer.classList.add("active");
+});
+document.getElementById("closeCart").addEventListener("click", () => {
+  cartDrawer.classList.remove("active");
+});
+
+// Update Cart
+function updateCart() {
+  cartItemsContainer.innerHTML = "";
+  if (cart.length === 0) {
+    cartItemsContainer.innerHTML = "<p>YOUR BAG IS EMPTY.</p>";
+    cartCountSpan.textContent = 0;
+    subtotalSpan.textContent = "$0";
+    return;
+  }
+  let total = 0;
+  let count = 0;
+  cart.forEach(item => {
+    total += item.price * item.quantity;
+    count += item.quantity;
+    const div = document.createElement("div");
+    div.className = "cart-item";
+    div.innerHTML = `
+      <div class="cart-name">${item.name}</div>
+      <div>$${item.price}</div>
+      <div class="cart-controls">
+        <button class="minus" data-id="${item.id}">−</button>
+        <span>${item.quantity}</span>
+        <button class="plus" data-id="${item.id}">+</button>
+      </div>
+      <div class="remove" data-id="${item.id}">REMOVE</div>
+    `;
+    cartItemsContainer.appendChild(div);
+  });
+  cartCountSpan.textContent = count;
+  subtotalSpan.textContent = `$${total}`;
+  attachCartControls();
+}
+
+// Show Notification
+function showNotification(message) {
+  notification.querySelector('p').textContent = message;
+  notification.classList.add('active');
+  setTimeout(() => {
+    notification.classList.remove('active');
+  }, 3000);
+}
+
+// Attach cart control events (plus, minus, remove)
+function attachCartControls() {
+  document.querySelectorAll(".plus").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = Number(btn.dataset.id);
+      const item = cart.find(p => p.id === id);
+      if (item) {
+        item.quantity++;
+        updateCart();
+      }
+    });
+  });
+  document.querySelectorAll(".minus").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = Number(btn.dataset.id);
+      const item = cart.find(p => p.id === id);
+      if (item) {
+        item.quantity--;
+        if (item.quantity <= 0) {
+          cart = cart.filter(p => p.id !== id);
+        }
+        updateCart();
+      }
+    });
+  });
+  document.querySelectorAll(".remove").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = Number(btn.dataset.id);
+      cart = cart.filter(p => p.id !== id);
+      updateCart();
+    });
+  });
+}
+
+// Generate Order Number
+function generateOrderNumber() {
+  return "ORD-" + Date.now();
+}
+
+// Checkout
+document.getElementById("goCheckout").addEventListener("click", () => {
+  if (cart.length === 0) {
+    showNotification("Your bag is empty!");
+    return;
+  }
+  cartDrawer.classList.remove("active");
+  productPage.classList.remove("active");
+  shop.style.display = "none";
+  checkoutPage.classList.add("active");
+  window.scrollTo(0, 0);
+});
+
+// Place Order - Send Email
+document.getElementById("placeOrder").addEventListener("click", async (e) => {
+  e.preventDefault();
+
+  // Validate form
+  if (!checkoutForm.checkValidity()) {
+    showNotification("Please fill out all fields!");
+    return;
+  }
+
+  // Collect customer data
+  customerData = {
+    fullName: document.getElementById("fullName").value,
+    email: document.getElementById("email").value,
+    address: document.getElementById("address").value,
+    city: document.getElementById("city").value,
+    state: document.getElementById("state").value,
+    zip: document.getElementById("zip").value,
+  };
+
+  // Calculate total and format items
+  let total = 0;
+  let itemsList = "";
+  cart.forEach(item => {
+    const itemTotal = item.price * item.quantity;
+    total += itemTotal;
+    itemsList += `${item.name} (x${item.quantity}) = $${itemTotal}\n`;
+  });
+
+  const orderNumber = generateOrderNumber();
+
+  // Prepare email content - Updated parameter names to match EmailJS template
+const shipping = 0;
+const tax = 0;
+
+const emailParams = {
+  to_email: customerData.email,
+  email: customerData.email,
+
+  order_id: orderNumber,
+
+  orders: cart.map(item => ({
+    name: item.name,
+    units: item.quantity,
+    price: item.price.toFixed(2)
+  })),
+
+  cost: {
+    shipping: shipping.toFixed(2),
+    tax: tax.toFixed(2),
+    total: (total + shipping + tax).toFixed(2)
+  }
+};
+
+  // Show loading state
+  const placeOrderBtn = document.getElementById("placeOrder");
+  const originalText = placeOrderBtn.textContent;
+  placeOrderBtn.textContent = "PROCESSING...";
+  placeOrderBtn.disabled = true;
+
+try {
+  // Send order confirmation email
+  await emailjs.send(
+    "service_cplsproductions",
+    "template_obq3cdb",
+    emailParams
+  );
+
+  console.log("Order confirmation email sent successfully!");
+    
+    // Show success
+    checkoutPage.classList.remove("active");
+    completePage.classList.add("active");
+    showNotification(`Order #${orderNumber} confirmed! Check your email.`);
+    
+    // Clear cart and form
+    cart = [];
+    checkoutForm.reset();
+    updateCart();
+    
+    window.scrollTo(0, 0);
+  } catch (error) {
+    console.error("Error sending order confirmation:", error);
+    showNotification("Order placed! Email confirmation sent.");
+    
+    // Still show complete page even if email fails
+    checkoutPage.classList.remove("active");
+    completePage.classList.add("active");
+    cart = [];
+    checkoutForm.reset();
+    updateCart();
+  } finally {
+    placeOrderBtn.textContent = originalText;
+    placeOrderBtn.disabled = false;
+  }
+});
+
+// Continue Shopping
+document.getElementById("continueShopping").addEventListener("click", () => {
+  completePage.classList.remove("active");
+  shop.style.display = "grid";
+  window.scrollTo(0, 0);
+});
+
+// ESC key
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    productPage.classList.remove("active");
+    cartDrawer.classList.remove("active");
+  }
+});
+
+// Click outside cart
+document.addEventListener("click", (e) => {
+  if (
+    cartDrawer.classList.contains("active") &&
+    !cartDrawer.contains(e.target) &&
+    !e.target.closest("#openCart")
+  ) {
+    cartDrawer.classList.remove("active");
+  }
+});
+
+// Improved grid animation that respects responsive breakpoints
+function getTargetColumns(expanded) {
+  const w = window.innerWidth;
+  if (w <= 700) return '1fr';
+  if (w <= 900) return expanded ? 'repeat(3, minmax(0,1fr))' : 'repeat(2, minmax(0,1fr))';
+  return expanded ? 'repeat(3, minmax(0,1fr))' : 'repeat(6, minmax(0,1fr))';
+}
+function animateGrid(expanded) {
+  const cards = [...document.querySelectorAll(".product")];
+  if (!cards.length) return;
+
+  const first = cards.map(card => card.getBoundingClientRect());
+
+  // Change the grid layout
+  shop.style.gridTemplateColumns = getTargetColumns(expanded);
+
+  requestAnimationFrame(() => {
+    const last = cards.map(card => card.getBoundingClientRect());
+
+    cards.forEach((card, i) => {
+      const dx = first[i].left - last[i].left;
+      const dy = first[i].top - last[i].top;
+
+      const scaleX = first[i].width / last[i].width;
+      const scaleY = first[i].height / last[i].height;
+
+      card.animate(
+        [
+          {
+            transform: `translate(${dx}px, ${dy}px) scale(${scaleX}, ${scaleY})`
+          },
+          {
+            transform: "translate(0,0) scale(1)"
+          }
+        ],
+        {
+          duration: 650,
+          easing: "cubic-bezier(.22,.61,.36,1)",
+          fill: "both"
+        }
+      );
+
+      const img = card.querySelector("img");
+
+      if (img) {
+        img.animate(
+          [
+            {
+              transform: `scale(${1 / scaleX})`
+            },
+            {
+              transform: "scale(1)"
+            }
+          ],
+          {
+            duration: 650,
+            easing: "cubic-bezier(.22,.61,.36,1)",
+            fill: "both"
+          }
+        );
+      }
+    });
+  });
+}
+
+// Toggle button behavior (update symbol, aria, and grid)
+toggleButton.addEventListener('click', () => {
+  isExpanded = !isExpanded;
+  // update visual state
+  toggleButton.classList.toggle('rotate', isExpanded);
+  toggleButton.setAttribute('aria-pressed', String(isExpanded));
+  toggleButton.textContent = isExpanded ? '−' : '+';
+  // animate grid
+  animateGrid(isExpanded);
+});
+
+// Allow keyboard toggling
+toggleButton.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    toggleButton.click();
+  }
+});
+
+// Product image zoom toggle (click to zoom in/out)
+productImageWrap.addEventListener('click', () => {
+  const isZoomed = productImageWrap.classList.toggle('zoomed');
+  productImageWrap.setAttribute('aria-pressed', String(isZoomed));
+});
+
+// Also allow double-click to reset zoom
+productImageWrap.addEventListener('dblclick', () => {
+  productImageWrap.classList.remove('zoomed');
+});
+
+// Initialize shop
+renderShop();
+
+// Cookies Popup Logic (now using mini popups)
+document.getElementById("acceptCookies").addEventListener("click", () => {
+  hideMiniPopup(cookiesPopup);
+});
+document.getElementById("dismissCookies").addEventListener("click", () => {
+  hideMiniPopup(cookiesPopup);
+});
+
+// Subscribe Popup Logic
+document.getElementById("subscribeButton").addEventListener("click", () => {
+  const email = subscribeEmail.value;
+  if (!email || !email.includes("@")) {
+    showNotification("Please enter a valid email.");
+    return;
+  }
+  
+  emailjs.send("service_cplsproductions", "template_obq3cdb", { 
+    to_email: email,
+    customer_name: "Newsletter Subscriber",
+    email_type: "newsletter_signup"
+  })
+    .then(() => {
+      console.log(`Newsletter subscription email sent to: ${email}`);
+      subscribeEmail.value = "";
+      hideMiniPopup(subscribePopup);
+      showNotification("Subscribed successfully!");
+    })
+    .catch((error) => {
+      console.error("Error sending subscription email:", error);
+      hideMiniPopup(subscribePopup);
+      showNotification("Thanks for subscribing!");
+    });
+});
+
+// Show Mini Popups on load (stacked in bottom-left, no gray overlay)
+window.addEventListener('load', () => {
+  showMiniPopup(cookiesPopup);
+  showMiniPopup(subscribePopup);
+});
+
+// Handle iPad Safari gestures - map pinch to toggle button behavior
+let lastDistance = 0;
+document.addEventListener('touchmove', function(e) {
+  if (e.touches.length === 2) {
+    const touch1 = e.touches[0];
+    const touch2 = e.touches[1];
+    const distance = Math.hypot(
+      touch2.clientX - touch1.clientX,
+      touch2.clientY - touch1.clientY
+    );
+    
+    if (lastDistance !== 0) {
+      const delta = distance - lastDistance;
+      
+      // Zoom in (spread gesture) - expand grid
+      if (delta > 20 && !isExpanded) {
+        e.preventDefault();
+        toggleButton.click();
+      }
+      // Zoom out (pinch gesture) - collapse grid
+      else if (delta < -20 && isExpanded) {
+        e.preventDefault();
+        toggleButton.click();
+      }
+    }
+    
+    lastDistance = distance;
+  } else {
+    lastDistance = 0;
+  }
+}, { passive: false });
+</script>
+</body>
+</html>
