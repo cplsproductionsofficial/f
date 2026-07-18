@@ -338,34 +338,24 @@ header {
 .notification.active { display: block; }
 
 /* Mini Popups (stacked mini-notifications at bottom-left) */
-  .mini-popup {
+.mini-popup {
   position: fixed;
   left: 20px;
-  bottom: 20px;
-  width: 420px;
-  max-width: calc(100vw - 40px);
+  width: 320px;
   background: #fff;
   border: var(--border);
-  padding: 20px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.08);
+  padding: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.07);
   border-radius: 4px;
   z-index: 3100;
-  transition: transform .25s ease, opacity .25s ease;
+  transition: transform 0.25s ease, opacity 0.25s ease;
   opacity: 0;
   transform: translateY(8px);
+  pointer-events: auto;
 }
 .mini-popup.active { opacity: 1; transform: translateY(0); }
 .mini-popup .mini-content { text-align: left; font-size: 13px; }
 .mini-popup .mini-actions { margin-top: 10px; display: flex; gap: 8px; justify-content: flex-end; }
-  .mini-popup .mini-content {
-  font-size: 15px;
-  line-height: 1.6;
-}
-
-.mini-popup .mini-actions button {
-  padding: 10px 18px;
-  font-size: 14px;
-}
 
 </style>
 </head>
@@ -457,6 +447,17 @@ header {
   </div>
 </div>
 
+<!-- Subscribe Mini Popup -->
+<div class="mini-popup" id="subscribePopup">
+  <div class="mini-content">
+    <p>Subscribe to our newsletter for updates!</p>
+    <input type="email" id="subscribeEmail" placeholder="Enter your email" />
+    <div class="mini-actions">
+      <button id="subscribeButton">Subscribe</button>
+    </div>
+  </div>
+</div>
+
 <!-- Notification -->
 <div class="notification" id="notification">
   <p>Notification message here.</p>
@@ -517,6 +518,8 @@ const checkoutForm = document.getElementById("checkoutForm");
 const completePage = document.getElementById("complete");
 const toggleButton = document.getElementById("toggleButton");
 const cookiesPopup = document.getElementById("cookiesPopup");
+const subscribePopup = document.getElementById("subscribePopup");
+const subscribeEmail = document.getElementById("subscribeEmail");
 const notification = document.getElementById("notification");
 
 // Mini popup stack state
@@ -937,6 +940,14 @@ document.getElementById("acceptCookies").addEventListener("click", () => {
 document.getElementById("dismissCookies").addEventListener("click", () => {
   hideMiniPopup(cookiesPopup);
 });
+
+// Subscribe Popup Logic
+document.getElementById("subscribeButton").addEventListener("click", () => {
+  const email = subscribeEmail.value;
+  if (!email || !email.includes("@")) {
+    showNotification("Please enter a valid email.");
+    return;
+  }
   
   emailjs.send("service_cplsproductions", "template_obq3cdb", { 
     to_email: email,
