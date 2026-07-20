@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 <title>CPL</title>
 <!-- Google Fonts -->
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <!-- EmailJS -->
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -22,8 +22,8 @@
 html {
   scroll-behavior: smooth;
 }
-body {
-  font-family: "IBM Plex Mono", monospace;
+  body {
+  font-family: "Fira Code", monospace;
   background: #fff;
   color: #000;
   text-transform: uppercase;
@@ -378,7 +378,7 @@ header {
     <img id="productImage" src="" alt="PRODUCT" />
   </div>
   <div class="product-details">
-    <button id="backButton">← BACK</button>
+    <button id="backButton">â BACK</button>
     <div class="product-title" id="productTitle">PRODUCT</div>
     <div class="product-price" id="productPrice">$0</div>
     <div class="product-description" id="productDescription"></div>
@@ -390,7 +390,7 @@ header {
 <aside class="cart" id="cart">
   <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
     <div class="cart-title">BAG</div>
-    <button id="closeCart">✕</button>
+    <button id="closeCart">â</button>
   </div>
   <div id="cartItems"><p>YOUR CART IS EMPTY.</p></div>
   <div class="subtotal">SUBTOTAL <div id="subtotal">$0</div></div>
@@ -492,12 +492,17 @@ const products = [
 { id: 19, name: "BT-01", price: 5, image: "IMG_3261.webp"},
 { id: 20, name: "SH-01", price: 10, image: "IMG_3260.webp"},
 { id: 21, name: "TS-01", price: 15, image: "A6771C0B-EEFD-4E70-B7C5-861EF7A2144D.png"},
+{ id: 22, name: "HD-03", price: 20, image: "IMG_3270.webp"},
+{ id: 23, name: "HD-02", price: 20, image: "IMG_3269.webp"},
+{ id: 24, name: "TT-01", price: 25, image: "IMG_3271.webp"},
+{ id: 25, name: "BP-01", price: 15, image: "2601435B-341E-4CD1-8AFB-AA91BE12D94D.png"},
   
 ];
 
 let cart = [];
 let currentProduct = null;
-let isExpanded = false;
+let gridMode = 2;
+const gridModes = [2,3,6,12];
 let customerData = {};
 
 // DOM Elements
@@ -638,7 +643,7 @@ function updateCart() {
       <div class="cart-name">${item.name}</div>
       <div>$${item.price}</div>
       <div class="cart-controls">
-        <button class="minus" data-id="${item.id}">−</button>
+        <button class="minus" data-id="${item.id}">â</button>
         <span>${item.quantity}</span>
         <button class="plus" data-id="${item.id}">+</button>
       </div>
@@ -836,20 +841,20 @@ document.addEventListener("click", (e) => {
 });
 
 // Improved grid animation that respects responsive breakpoints
-function getTargetColumns(expanded) {
+function getTargetColumns() {
   const w = window.innerWidth;
-  if (w <= 700) return '1fr';
-  if (w <= 900) return expanded ? 'repeat(3, minmax(0,1fr))' : 'repeat(2, minmax(0,1fr))';
-  return expanded ? 'repeat(3, minmax(0,1fr))' : 'repeat(6, minmax(0,1fr))';
+  if (w <= 700) return "1fr";
+  if (w <= 900) return `repeat(${Math.min(gridMode,4)}, minmax(0,1fr))`;
+  return `repeat(${gridMode}, minmax(0,1fr))`;
 }
-function animateGrid(expanded) {
+function animateGrid() {
   const cards = [...document.querySelectorAll(".product")];
   if (!cards.length) return;
 
   const first = cards.map(card => card.getBoundingClientRect());
 
   // Change the grid layout
-  shop.style.gridTemplateColumns = getTargetColumns(expanded);
+  shop.style.gridTemplateColumns = getTargetColumns();
 
   requestAnimationFrame(() => {
     const last = cards.map(card => card.getBoundingClientRect());
@@ -902,13 +907,10 @@ function animateGrid(expanded) {
 
 // Toggle button behavior (update symbol, aria, and grid)
 toggleButton.addEventListener('click', () => {
-  isExpanded = !isExpanded;
-  // update visual state
-  toggleButton.classList.toggle('rotate', isExpanded);
-  toggleButton.setAttribute('aria-pressed', String(isExpanded));
-  toggleButton.textContent = isExpanded ? '−' : '+';
-  // animate grid
-  animateGrid(isExpanded);
+  const index = gridModes.indexOf(gridMode);
+  gridMode = gridModes[(index + 1) % gridModes.length];
+  toggleButton.textContent = "+";
+  animateGrid();
 });
 
 // Allow keyboard toggling
@@ -988,12 +990,12 @@ document.addEventListener('touchmove', function(e) {
       const delta = distance - lastDistance;
       
       // Zoom in (spread gesture) - expand grid
-      if (delta > 20 && !isExpanded) {
+      if (delta > 20) {
         e.preventDefault();
         toggleButton.click();
       }
       // Zoom out (pinch gesture) - collapse grid
-      else if (delta < -20 && isExpanded) {
+      else if (delta < -20) {
         e.preventDefault();
         toggleButton.click();
       }
