@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TS-01</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Fira Code',monospace;background:#fff;color:#000}
+header{position:sticky;top:0;padding:20px 30px;border-bottom:1px solid #000;display:flex;justify-content:space-between;background:#fff}
+.container{max-width:1200px;margin:auto;display:grid;grid-template-columns:1.4fr 1fr;gap:40px;padding:40px}
+img{width:100%;border:1px solid #000}
+button{width:100%;padding:18px;background:#000;color:#fff;border:none;font:inherit;cursor:pointer}
+.info{margin-top:20px;border-top:1px solid #000;padding-top:15px}
+#cart{position:fixed;right:-360px;top:0;width:340px;height:100%;background:#fff;border-left:1px solid #000;transition:.3s;padding:20px}
+#cart.open{right:0}
+.qty{display:flex;gap:10px;align-items:center}
+.small{background:#fff;color:#000;border:1px solid #000;width:40px}
+@media(max-width:800px){.container{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header><strong>CPL</strong><div id="bag">BAG (0)</div></header>
+<div class="container">
+<div><img src="ts01.png" alt="TS-01"></div>
+<div>
+<h1>TS-01</h1>
+<h2>$20</h2>
+<p>100% COTTON<br>HEAVYWEIGHT<br>MADE IN PORTUGAL</p>
+<button id="buy">BUY NOW</button>
+<div class="info">
+<details><summary>INFO</summary><p>Premium heavyweight cotton tee with an oversized fit. Ships worldwide.</p></details>
+</div>
+</div></div>
+<div id="cart">
+<h2>BAG</h2>
+<div id="content">Your bag is empty.</div>
+<h3 id="sub"></h3>
+<button>CHECKOUT</button>
+</div>
+<script>
+let qty=0;
+const bag=document.getElementById('bag'),cart=document.getElementById('cart'),content=document.getElementById('content'),sub=document.getElementById('sub');
+bag.onclick=()=>cart.classList.toggle('open');
+buy.onclick=()=>{
+ qty++;
+ bag.textContent='BAG ('+qty+')';
+ content.innerHTML='<p>TS-01</p><div class="qty"><button class="small" onclick="chg(-1)">-</button><span id=q>'+qty+'</span><button class="small" onclick="chg(1)">+</button></div>';
+ sub.textContent='Subtotal: $'+(qty*20);
+ cart.classList.add('open');
+}
+function chg(n){qty=Math.max(0,qty+n);bag.textContent='BAG ('+qty+')';
+if(qty==0){content.textContent='Your bag is empty.';sub.textContent='';return;}
+q.textContent=qty;sub.textContent='Subtotal: $'+(qty*20);}
+</script></body></html>
