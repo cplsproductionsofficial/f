@@ -3,6 +3,25 @@
 <title>CPL</title>
 <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
 <style>
+ summary {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    cursor:pointer;
+    list-style:none;
+}
+
+summary::-webkit-details-marker{
+    display:none;
+}
+
+.arrow{
+    transition:transform .35s ease;
+}
+
+details[open] .arrow{
+    transform:rotate(180deg);
+}
 body{margin:0;font-family:'Fira Code',monospace;background:#fff;color:#000}
 header{position:sticky;top:0;padding:20px 30px;border-bottom:1px solid #000;display:flex;justify-content:space-between;background:#fff}
 .container{max-width:1200px;margin:auto;display:grid;grid-template-columns:1.4fr 1fr;gap:40px;padding:40px}
@@ -22,10 +41,22 @@ button{width:100%;padding:18px;background:#000;color:#fff;border:none;font:inher
 <div>
 <h1>TS-01</h1>
 <h2>$20</h2>
-<p>100% COTTON<br>HEAVYWEIGHT<br>MADE IN PORTUGAL</p>
+<p>100% COTTON<br>BASIC T SHIRT<br></p>
 <button id="buy">BUY NOW</button>
 <div class="info">
-<details><summary>INFO</summary><p>Premium heavyweight cotton tee with an oversized fit. Ships worldwide.</p></details>
+<details class="info">
+  <summary>
+    INFO
+    <span class="arrow">⌄</span>
+  </summary>
+
+  <div class="info-content">
+    <p>
+      Premium heavyweight cotton tee with an oversized fit.
+      Ships worldwide.
+    </p>
+  </div>
+</details>
 </div>
 </div></div>
 <div id="cart">
